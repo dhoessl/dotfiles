@@ -1,0 +1,75 @@
+---
+# see web for further reading:
+# https://yamllint.readthedocs.io/en/stable/rules.html#module-yamllint.rules.braces
+rules:
+  # write {} or {a} or {a: b}
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 0
+    min-spaces-inside-empty: 0
+    max-spaces-inside-empty: 0
+  # write [] or [a] or [a, b]
+  brackets:
+    min-spaces-inside: 1
+    max-spaces-inside: 1
+    min-spaces-inside-empty: 0
+    max-spaces-inside-empty: 0
+  # write a: b
+  colons:
+    max-spaces-after: 1
+    max-spaces-before: 0
+  # write a, b
+  commas:
+    min-spaces-after: 1
+    max-spaces-after: 1
+    max-spaces-before: 0
+  # write your comment like this one
+  comments:
+    level: 'warning'
+    require-starting-space: true
+    min-spaces-from-content: 1
+  comments-indentation:
+    level: 'warning'
+  # ... at end
+  document-end:
+    present: true
+  # ... at start
+  document-start:
+    level: 'warning'
+    present: true
+  # dont do any stupid empty lines
+  empty-lines:
+    max-start: 0
+    max: 1
+    max-end: 0
+  # if you need it do a: null
+  empty-values:
+    forbid-in-block-mappings: true
+    forbid-in-flow-mappings: true
+  # just do:
+  #   - asdf
+  hyphens:
+    max-spaces-after: 1
+  indentation:
+    check-multi-line-strings: true
+    spaces: 2
+    indent-sequences: true
+  key-duplicates: 'enable'
+  key-ordering: 'disable'
+  line-length:
+    level: 'warning'
+    max: 120
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+  new-line-at-end-of-file: 'enable'
+  new-lines:
+    type: 'unix'
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
+  quoted-strings:
+    quote-type: 'single'
+    level: 'warning'
+  trailing-spaces: 'enable'
+  truthy: 'enable'
+...

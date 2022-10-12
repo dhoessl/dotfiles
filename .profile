@@ -54,13 +54,6 @@ create_role () {
   echo "---\n..." > roles/$ROLE_NAME/handlers/main.yaml
 }
 
-kunde () {
-  ssh -t mega kunde
-}
-
-mega () {
-  ssh -A -t mega zsh
-}
 
 export EDITOR='vim'
 export VISUAL='vim'

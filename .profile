@@ -45,6 +45,22 @@ create_role () {
   echo "---\n..." > roles/$ROLE_NAME/handlers/main.yaml
 }
 
+SSH_ENV="$HOME/.ssh/env"
+
+start_ssh_agent () {
+  /usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
+  chmod 600 "${SSH_ENV}"
+  . "${SSH_ENV}" > /dev/null
+  /usr/bin/ssh-add;
+}
+
+if [ -f "${SSH_ENV}" ]; then
+  . "${SSH_ENV}" > /dev/null
+  ps -ef | grep ${SSH_AGENT_PID} | grep -v grep > /dev/null || { start_ssh_agent; }
+else
+  start_ssh_agent;
+fi
+
 export EDITOR='vim'
 export VISUAL='vim'
 

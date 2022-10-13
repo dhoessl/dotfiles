@@ -1,71 +1,56 @@
-# i3-keys
+# 00 - Basic Configuration
 
-# reload the configuration file
-bindsym $mod+Shift+c          exec --no-startup-id /home/dhoessl/.config/i3/scripts/merge_config.py && reload
-# restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
-bindsym $mod+Shift+r          restart
+# Modifiers
+set $mod                      Mod4
+floating_modifier             $mod
 
-# Vim Bindings for focus disabled
+# i3 workspace and mouse
+workspace_auto_back_and_forth yes
+focus_follows_mouse           no
+focus_on_window_activation    none
 
-# change focus cursor keys
-bindsym $mod+Left             focus left
-bindsym $mod+Down             focus down
-bindsym $mod+Up               focus up
-bindsym $mod+Right            focus right
+# WORKSPACE
+set $ws1 "1: Laptop"
+set $ws2 "2: Work"
+set $ws3 "3: Mail"
+set $ws4 "4: Scripting"
+set $ws5 "5: Music"
 
-# Vim Bindings for move focused Window disabled
+# WORKSPACE output
+workspace $ws1 output eDP-1-1 
+workspace $ws2 output HDMI-0 eDP-1-1 
+workspace $ws3 output HDMI-0 eDP-1-1 
+workspace $ws4 output HDMI-0 eDP-1-1 
+workspace $ws5 output eDP-1-1 
 
-# move focused window cursor keys
-bindsym $mod+Shift+Left       move left
-bindsym $mod+Shift+Down       move down
-bindsym $mod+Shift+Up         move up
-bindsym $mod+Shift+Right      move right
+# 01 - Look - Colors and Fonts
 
-# split in horizontal orientation
-bindsym $mod+v            split h
-# split in vertical orientation
-bindsym $mod+h            split v
+# - Main Font - Main Size -
+font pango:MesloLGS NF Regular 10
 
-# enter fullscreen mode for the focused container
-bindsym $mod+f            fullscreen toggle
+# - Border -
+default_border          normal
+default_floating_border normal
+hide_edge_borders       smart
 
-# change container layout (stacked, tabbed, toggle split)
-bindsym $mod+s            layout stacking
-bindsym $mod+w            layout tabbed
-bindsym $mod+e            layout toggle split
+# - Title -
+for_window [class=".*"] title_format "  %title"
 
-# toggle tiling / floating
-bindsym $mod+Shift+space  floating toggle
-# change focus between tiling / floating windows
-bindsym $mod+space        focus mode_toggle
+# TODO: - Colors -
 
-# focus the parent container
-bindsym $mod+a            focus parent
-# focus the child container
-#bindsym $mod+d            focus child
+# TODO: - Window Colors -
 
-# Switch to Workspace
-bindsym $mod+1 workspace number $ws1
-bindsym $mod+2 workspace number $ws2
-bindsym $mod+3 workspace number $ws3
-bindsym $mod+4 workspace number $ws4
-bindsym $mod+5 workspace number $ws5
+# 02 - Window Configuration
 
-# move container to Workspace
-bindsym $mod+Shift+1 move container to workspace number $ws1
-bindsym $mod+Shift+2 move container to workspace number $ws2
-bindsym $mod+Shift+3 move container to workspace number $ws3
-bindsym $mod+Shift+4 move container to workspace number $ws4
-bindsym $mod+Shift+5 move container to workspace number $ws5
-
-# assign programs to workspaces
+# - Window to Workspace Assigment -
 assign [class="spotify"]      $ws5
 assign [title=".*Bandcamp.*"] $ws5
 assign [instance="Mail"]      $ws3
-assign [class="KeePassXC"]    $ws2
+assign [class="KeePassXC"]    $ws1
+assign [class="zoom"]         $ws1
 
 
-# set floating attributes for windows
+# - Floating Config -
 for_window [window_role="pop-up"]                   floating enable
 for_window [window_role="task_dialog"]              floating enable
 for_window [class="Pavucontrol"]                    floating enable
@@ -74,8 +59,30 @@ for_window [title="Zoom - (Licensed|Free) Account"] floating disable
 for_window [class="^Cssh$"]                         floating enable
 for_window [title="(CSSH|CLUSTERSSH): "]            floating enable
 for_window [class="Org.gnome.Nautilus"]             floating enable
-# Mode to resize windows on the screen
 
+# 03 - Status Bars
+
+# Create Status bars on both monitors if possible
+# Since one is big and the other not set different font sizes
+
+# - Big Screen -
+bar {
+  font pango:MesloLGS NF Regular 14
+  output HDMI-0
+  status_command i3status --config /home/dhoessl/.config/i3/i3status.conf
+}
+
+# - Main Laptop - small Screen -
+bar {
+  font pango:MesloLGS NF Regular 12
+  output eDP-1-1
+  status_command i3status --config /home/dhoessl/.config/i3/i3status_small.conf
+  tray_output eDP-1-1
+}
+
+# 04 - Mode Configuration
+
+# - Resizing -
 mode "resize" {
   # Pressing left will shrink the window’s width.
   # Pressing right will grow the window’s width.
@@ -98,7 +105,7 @@ mode "resize" {
 
 bindsym $mod+r mode "resize"
 
-# Display Manager
+# - Display Manager -
 set $mode_display Config monitor resolution - Laptop (l) - Desktop (d) - Mixed (m)
 
 mode "$mode_display" {
@@ -112,30 +119,13 @@ mode "$mode_display" {
 }
 
 bindsym $mod+x mode "$mode_display"
-# Display Reset if something unexpected happens we will try to recover with this keys
+# - Display Manager - Reset -
 bindsym $mod+Shift+x exec --no-startup-id python3 /home/dhoessl/.config/i3/scripts/display_switch.py -r
 
+# - Program Selector - Easy Access to Programs
+# Removed since `rofi` is doing a good job
 
-# Program opener TODO: multiple modes for better selection
-
-set $mode_shortcuts Shortcuts - firefox (f) - thunderbird (g) - keepassxc (h) - pavu (j) - ferdi(k)
-
-mode "$mode_shortcuts" {
-  bindsym f exec --no-startup-id firefox-esr,   mode "default"
-  bindsym g exec --no-startup-id thunderbird,   mode "default"
-  bindsym h exec --no-startup-id keepassxc,     mode "default"
-  bindsym j exec --no-startup-id pavucontrol,   mode "default"
-  bindsym k exec --no-startup-id ferdi,         mode "default"
-
-  bindsym Return mode "default"
-  bindsym Escape mode "default"
-  bindsym $mod+p mode "default"
-}
-
-bindsym $mod+p mode "$mode_shortcuts"
-
-
-# Session Manager
+# - Session Manager -
 set $mode_system System - lock (l) - logout (e) - suspend (s) - hibernate (h) - reboot (r) - shutdown (Ctrl+s)
 
 mode "$mode_system" {
@@ -152,57 +142,103 @@ mode "$mode_system" {
 }
 
 bindsym $mod+BackSpace mode "$mode_system"
-# Modifiers
-set $mod          Mod4
-floating_modifier $mod
 
-# i3 workspace and mouse
-workspace_auto_back_and_forth yes
-focus_follows_mouse           no
-focus_on_window_activation    none
+# 05 - Autostarts - Programs and Tools to start on startup
 
-# WORKSPACE
-set $ws1 "1: Laptop"
-set $ws2 "2: Work"
-set $ws3 "3: Mail"
-set $ws4 "4: Scripting"
-set $ws5 "5: Music"
+# TODO: - Power Manager - please don't fu my monitors
+exec --no-startup-id dex --autostart --environment i3
+exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
 
-# WORKSPACE output
-workspace $ws1 output eDP-1-1 
-workspace $ws2 output HDMI-0 eDP-1-1 
-workspace $ws3 output HDMI-0 eDP-1-1 
-workspace $ws4 output HDMI-0 eDP-1-1 
-workspace $ws5 output eDP-1-1 
-# Font and size
-font pango:MesloLGS NF Regular 10
+# TODO: maybe: - Display layout -
 
-# Border Style
-default_border          pixel 2
-default_floating_border normal
-hide_edge_borders       smart
+# TODO - Background -
 
-# Window title (still testing)
-for_window [class=".*"] title_format "  %title"
+# - Applets -
+exec --no-startup-id nm-applet
 
-# Some color stuff  !!TODO!!
+# - Programs -
+exec --no-startup-id firefox-esr
+exec --no-startup-id tilix
+exec --no-startup-id ferdi
+exec --no-startup-id thunderbird
+exec --no-startup-id flameshot gui
 
-# Window colors     !!TODO!!
+# 06 - i3 related keys
 
+# - Config File -
+# reload
+bindsym $mod+Shift+c          reload
+# restart
+bindsym $mod+Shift+r          restart
 
-# app-keys
+# - Change Focus - Vim Bindings -
+# -! disabled !-
 
-# start dmenu (a program launcher)
-bindsym $mod+d exec --no-startup-id dmenu_run
-# A more modern dmenu replacement is rofi:
-# bindcode $mod+40 exec "rofi -modi drun,run -show drun"
+# - Change Focus - Cursor Keys -
+bindsym $mod+Left             focus left
+bindsym $mod+Down             focus down
+bindsym $mod+Up               focus up
+bindsym $mod+Right            focus right
 
-# Lockscreen Settings
+# -! disabled !-
+
+# - move focused window - Cursor Keys -
+bindsym $mod+Shift+Left       move left
+bindsym $mod+Shift+Down       move down
+bindsym $mod+Shift+Up         move up
+bindsym $mod+Shift+Right      move right
+
+# - Split Display - Horizontal Axis -
+bindsym $mod+v            split h
+# - Split Display - Vertical Axis -
+bindsym $mod+h            split v
+
+# - Fullscreen toggle -
+bindsym $mod+f            fullscreen toggle
+
+# - Container Floating toggle -
+bindsym $mod+Shift+space  floating toggle
+
+# - Change focus - tiling / floating -
+bindsym $mod+space        focus mode_toggle
+
+# - Container Layout -
+bindsym $mod+s            layout stacking
+bindsym $mod+w            layout tabbed
+bindsym $mod+e            layout toggle split
+
+# - Change Focus - Parent Container -
+# bindsym $mod+a            focus parent
+# - Change Focus - Child Container -
+# bindsym $mod+d            focus child
+
+# - Switch to - Workspace
+bindsym $mod+1 workspace number $ws1
+bindsym $mod+2 workspace number $ws2
+bindsym $mod+3 workspace number $ws3
+bindsym $mod+4 workspace number $ws4
+bindsym $mod+5 workspace number $ws5
+
+# - Move Window to - Workspace
+bindsym $mod+Shift+1 move container to workspace number $ws1
+bindsym $mod+Shift+2 move container to workspace number $ws2
+bindsym $mod+Shift+3 move container to workspace number $ws3
+bindsym $mod+Shift+4 move container to workspace number $ws4
+bindsym $mod+Shift+5 move container to workspace number $ws5
+
+# 07 - other App related Keys
+
+# - Programselector -
+# -- dmenu disabled --
+# -- rofi --
+bindsym $mod+d exec "rofi -modi drun,window,run -show drun"
+
+# - Lockscreen -
 set $i3lockwall /home/dhoessl/.config/i3/scripts/lock.py
 
 bindsym $mod+Shift+l exec --no-startup-id $i3lockwall
 
-# Audio Config
+# - Audio -
 set $refresh_i3status killall -SIGUSR1 i3status
 bindsym XF86AudioRaiseVolume  exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +10% && $refresh_i3status
 bindsym XF86AudioLowerVolume  exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -10% && $refresh_i3status
@@ -213,45 +249,11 @@ bindsym XF86AudioPrev         exec --no-startup-id playerctl previous && $refres
 bindsym XF86AudioNext         exec --no-startup-id playerctl next && $refresh_i3status
 bindsym XF86AudioStop         exec --no-startup-id playerctl stop && $refresh_i3status
 
-# Start Terminal
+# - Terminal -
 bindsym $mod+Return exec tilix
 
-# Kill focused window
+# - Kill Focus Window -
 bindsym $mod+Shift+q kill
-# Create Status bars on both monitors if possible
-# Since one is big and the other not set different font sizes
 
-# Status Bar Big Screen
-bar {
-  font pango:MesloLGS NF Regular 14
-  output HDMI-0
-  status_command i3status --config /home/dhoessl/.config/i3/i3status.conf
-}
-
-bar {
-  font pango:MesloLGS NF Regular 12
-  output eDP-1-1
-  status_command i3status --config /home/dhoessl/.config/i3/i3status_small.conf
-  tray_output eDP-1-1
-}
-# Autostarts
-
-# Power Manager TODO
-exec --no-startup-id dex --autostart --environment i3
-exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
-
-# Display layout ?maybe
-
-# Background TODO
-
-# Applets
-exec --no-startup-id nm-applet
-
-# Programs
-exec --no-startup-id firefox-esr
-exec --no-startup-id tilix
-exec --no-startup-id ferdi
-exec --no-startup-id thunderbird
-
-
-
+# - rebuild i3 config -
+bindsym $mod+Ctrl+c           exec --no-startup-id /home/dhoessl/.config/i3/scripts/merge_config.py

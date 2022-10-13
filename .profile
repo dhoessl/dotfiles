@@ -20,18 +20,9 @@ fi
 if [ -d "$HOME/bin" ] ; then
     PATH="$HOME/bin:$PATH"
 fi
-
-if [ -d "/snap/bin" ] ; then
-    PATH="/snap/bin:$PATH"
-fi
-
 # set PATH so it includes user's private bin if it exists
 if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
-fi
-
-if [ -d "$HOME/Documents/gitwork" ]; then
-    PATH="$HOME/Documents/gitwork:$PATH"
 fi
 
 if [ -d "$HOME/gowork" ]; then
@@ -54,10 +45,7 @@ create_role () {
   echo "---\n..." > roles/$ROLE_NAME/handlers/main.yaml
 }
 
-
 export EDITOR='vim'
 export VISUAL='vim'
-
-export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh.socket"
 
 [[ -f ~/.bash_aliases ]] && source ~/.bash_aliases

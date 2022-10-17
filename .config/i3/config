@@ -15,6 +15,7 @@ set $ws2 "2: Work"
 set $ws3 "3: Mail"
 set $ws4 "4: Scripting"
 set $ws5 "5: Music"
+set $ws6 "6: Work (Share)"
 
 # WORKSPACE output
 workspace $ws1 output eDP-1-1 
@@ -22,6 +23,7 @@ workspace $ws2 output HDMI-0 eDP-1-1
 workspace $ws3 output HDMI-0 eDP-1-1 
 workspace $ws4 output HDMI-0 eDP-1-1 
 workspace $ws5 output eDP-1-1 
+workspace $ws6 output eDP-1-1 
 
 # 01 - Look - Colors and Fonts
 
@@ -36,9 +38,27 @@ hide_edge_borders       smart
 # - Title -
 for_window [class=".*"] title_format "  %title"
 
-# TODO: - Colors -
+# - Colors -
+# Since there are no default X colors, i have to set them by myself
+set   $base_dark   #2f343f
+set   $base_light  #454b56
+set   $text_light  #c1c2c3
+set   $text_dim    #848c9b
+set   $text_dark   #000000
+set   $urgent      #3D85C6
+set   $indicator   #bbbbbb
+# set $base_light  #3f4550
+# set $base_light  #343944
+# set $text-dim    #676E7D
+# set $urgent      #E53935
+# set $urgent      #A9C03F
 
-# TODO: - Window Colors -
+# - Window Colors -
+# Window Colors         border      background  text        indicator  child_border
+client.focused          $urgent     $urgent     $text_dark  $indicator $urgent     
+client.unfocused        $base_light $base_light $text_dim   $indicator             
+client.focused_inactive $base_light $base_light $text_dim   $indicator             
+client.urgent           $urgent     $urgent     $text_light $indicator             
 
 # 02 - Window Configuration
 
@@ -145,13 +165,20 @@ bindsym $mod+BackSpace mode "$mode_system"
 
 # 05 - Autostarts - Programs and Tools to start on startup
 
-# TODO: - Power Manager - please don't fu my monitors
+# - dex Autostart i3 -
 exec --no-startup-id dex --autostart --environment i3
+
+# - Lock Screen -
 exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
+exec --no-startup-id /home/dhoessl/.config/i3/scripts/check_idle.py --idle-time 900
+
+# - Power Manager - display Screen blank
+exec --no-startup-id xset -dmps
 
 # TODO: maybe: - Display layout -
 
 # TODO - Background -
+exec --no-startup-id /home/dhoessl/.config/i3/scripts/set_wallpaper.sh
 
 # - Applets -
 exec --no-startup-id nm-applet
@@ -180,32 +207,33 @@ bindsym $mod+Down             focus down
 bindsym $mod+Up               focus up
 bindsym $mod+Right            focus right
 
+# - Move focused window - Vim Bindings -
 # -! disabled !-
 
-# - move focused window - Cursor Keys -
+# - Move focused window - Cursor Keys -
 bindsym $mod+Shift+Left       move left
 bindsym $mod+Shift+Down       move down
 bindsym $mod+Shift+Up         move up
 bindsym $mod+Shift+Right      move right
 
 # - Split Display - Horizontal Axis -
-bindsym $mod+v            split h
+bindsym $mod+v                split h
 # - Split Display - Vertical Axis -
-bindsym $mod+h            split v
+bindsym $mod+h                split v
 
 # - Fullscreen toggle -
-bindsym $mod+f            fullscreen toggle
+bindsym $mod+f                fullscreen toggle
 
 # - Container Floating toggle -
-bindsym $mod+Shift+space  floating toggle
+bindsym $mod+Shift+space      floating toggle
 
 # - Change focus - tiling / floating -
-bindsym $mod+space        focus mode_toggle
+bindsym $mod+space            focus mode_toggle
 
 # - Container Layout -
-bindsym $mod+s            layout stacking
-bindsym $mod+w            layout tabbed
-bindsym $mod+e            layout toggle split
+bindsym $mod+s                layout stacking
+bindsym $mod+w                layout tabbed
+bindsym $mod+e                layout toggle split
 
 # - Change Focus - Parent Container -
 # bindsym $mod+a            focus parent
@@ -218,6 +246,7 @@ bindsym $mod+2 workspace number $ws2
 bindsym $mod+3 workspace number $ws3
 bindsym $mod+4 workspace number $ws4
 bindsym $mod+5 workspace number $ws5
+bindsym $mod+6 workspace number $ws6
 
 # - Move Window to - Workspace
 bindsym $mod+Shift+1 move container to workspace number $ws1
@@ -225,6 +254,7 @@ bindsym $mod+Shift+2 move container to workspace number $ws2
 bindsym $mod+Shift+3 move container to workspace number $ws3
 bindsym $mod+Shift+4 move container to workspace number $ws4
 bindsym $mod+Shift+5 move container to workspace number $ws5
+bindsym $mod+Shift+6 move container to workspace number $ws6
 
 # 07 - other App related Keys
 

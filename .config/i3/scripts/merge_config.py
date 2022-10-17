@@ -28,7 +28,7 @@ def run():
                             fp2.write(line)
     except:
         backup('recover')
-        subrun(['notify-send', '--urgency', 'critical', 'Something went wrong while creating new config - reset to backup'])
+        subrun(['notify-send', '--urgency', 'critical', 'Something went wrong while creating new config - revert to backup'])
         exit(1)
     backup('delete')
 

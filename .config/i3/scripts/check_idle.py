@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
 from subprocess import run as srun
+from subprocess import Popen
 from argparse import ArgumentParser
 from time import sleep
+import lock
+from os import remove
 
 
 class Parser:
@@ -20,20 +23,44 @@ class Parser:
         )
 
 
+class Idler:
+    def __init__(self, timeout) -> None:
+        self.timer = 10
+        self.timeout = timeout
+        self.idle_message_send = False
+        self.run()
+
+    def run(self) -> None:
+        while True:
+            sleep(self.timer)
+            idle_time = int(srun(['xprintidle'], capture_output=True).stdout.decode().split()[0]) // 1000
+            if self.idle_message_send and idle_time < self.timeout / 2:
+                self.idle_message_send = False
+            elif not self.idle_message_send and idle_time > self.timeout / 2:
+                srun(['notify-send', 'Your idling for about ' + str(self.timeout / 120) + ' minutes'])
+                self.idle_message_send = True
+            if idle_time > self.timeout:
+                if srun('ps x | grep \'i3lock\' | grep -v grep', shell=True, capture_output=True).stdout.decode():
+                    continue
+                else:
+                    if srun(['playerctl', 'status'], capture_output=True).stdout.decode().split()[0] == 'Playing':
+                        srun(['playerctl', 'play-pause'])
+                    idle_lock = Lock()
+                    idle_lock.run()
+
+
+class Lock:
+    def __init__(self) -> None:
+        self.lock_location = '/tmp/lock.png'
+        lock.create_lockscreen(self.lock_location)
+
+    def run(self) -> None:
+        prog_lock = Popen(['i3lock', '-i', self.lock_location])
+        prog_lock.wait()
+        remove(self.lock_location)
+
+
 if __name__ == '__main__':
     parser = Parser()
     args = parser.args
-    idle_message_send = False
-    while True:
-        sleep(10)
-        idle_time = srun(['xprintidle'], capture_output=True).stdout.decode().split()[0]
-        if idle_message_send and int(idle_time) // 1000 < args.idle_time / 2:
-            idle_message_send = False
-        elif not idle_message_send and int(idle_time) // 1000 > args.idle_time / 2:
-            srun(['notify-send', 'Your idling for about ' + str(args.idle_time / 120) + ' minutes'])
-            idle_message_send = True
-        if int(idle_time) // 1000 > args.idle_time:
-            if srun('ps x | grep \'i3lock\' | grep -v grep', shell=True, capture_output=True).stdout.decode():
-                continue
-            else:
-                srun(['/home/dhoessl/.config/i3/scripts/lock.py'])
+    Idler(args.idle_time)

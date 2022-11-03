@@ -146,6 +146,8 @@ bindsym $mod+Shift+x exec --no-startup-id python3 /home/dhoessl/.config/i3/scrip
 # Removed since `rofi` is doing a good job
 
 # - Session Manager -
+# -- Lockscreen --
+set $i3lockwall /home/dhoessl/.config/i3/scripts/lock.py
 set $mode_system System - lock (l) - logout (e) - suspend (s) - hibernate (h) - reboot (r) - shutdown (Ctrl+s)
 
 mode "$mode_system" {
@@ -169,15 +171,17 @@ bindsym $mod+BackSpace mode "$mode_system"
 exec --no-startup-id dex --autostart --environment i3
 
 # - Lock Screen -
-exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
+# exec --no-startup-id xss-lock --transfer-sleep-lock -- /home/dhoessl/.config/i3/scripts/lock.py
 exec --no-startup-id /home/dhoessl/.config/i3/scripts/check_idle.py --idle-time 900
 
 # - Power Manager - display Screen blank
-exec --no-startup-id xset -dmps
+exec --no-startup-id xset -dpms
+exec --no-startup-id xset s off
+exec --no-startup-id /home/dhoessl/.config/i3/scripts/battery.py
 
 # TODO: maybe: - Display layout -
 
-# TODO - Background -
+# - Background -
 exec --no-startup-id /home/dhoessl/.config/i3/scripts/set_wallpaper.sh
 
 # - Applets -
@@ -188,7 +192,8 @@ exec --no-startup-id firefox-esr
 exec --no-startup-id tilix
 exec --no-startup-id ferdi
 exec --no-startup-id thunderbird
-exec --no-startup-id flameshot gui
+exec --no-startup-id flameshot
+exec --no-startup-id autokey-gtk
 
 # 06 - i3 related keys
 
@@ -278,6 +283,10 @@ bindsym XF86AudioPlay         exec --no-startup-id playerctl play-pause && $refr
 bindsym XF86AudioPrev         exec --no-startup-id playerctl previous && $refresh_i3status
 bindsym XF86AudioNext         exec --no-startup-id playerctl next && $refresh_i3status
 bindsym XF86AudioStop         exec --no-startup-id playerctl stop && $refresh_i3status
+bindsym $mod+F9               exec --no-startup-id playerctl play-pause && $refresh_i3status
+bindsym $mod+F10              exec --no-startup-id playerctl previous && $refresh_i3status
+bindsym $mod+F11              exec --no-startup-id playerctl next && $refresh_i3status
+bindsym $mod+F12              exec --no-startup-id playerctl stop && $refresh_i3status
 
 # - Terminal -
 bindsym $mod+Return exec tilix
@@ -287,3 +296,6 @@ bindsym $mod+Shift+q kill
 
 # - rebuild i3 config -
 bindsym $mod+Ctrl+c           exec --no-startup-id /home/dhoessl/.config/i3/scripts/merge_config.py
+
+# - Screenshot -
+bindsym Print                 exec --no-startup-id flameshot gui

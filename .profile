@@ -48,6 +48,7 @@ create_role () {
 SSH_ENV="$HOME/.ssh/env"
 
 start_ssh_agent () {
+  ps -ef | grep ${SSH_AGENT_PID} | grep -v grep > /dev/null && killall ssh-agent
   /usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
   chmod 600 "${SSH_ENV}"
   . "${SSH_ENV}" > /dev/null

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import psutil
+from psutil import sensors_battery
 from subprocess import run as srun
 from time import sleep
 
@@ -8,9 +8,9 @@ from time import sleep
 class Notifier:
     def __init__(self) -> None:
         self.urgencies = {
-            'low': 500,
-            'normal': 1000,
-            'critical': 5000
+            'low': 2000,
+            'normal': 5000,
+            'critical': 10000
         }
         self.level = None
         self.state = None
@@ -18,8 +18,8 @@ class Notifier:
     def notify(self, urgency) -> None:
         srun([
             'notify-send',
-            '-u', self.urgency,
-            '-t', self.urgencies[urgency],
+            '-u', urgency,
+            '-t', str(self.urgencies[urgency]),
             'BATTERY INFORMATION',
             'Battery is at level {}'.format(int(self.level))
         ])
@@ -35,8 +35,8 @@ class Notifier:
 def run() -> None:
     notifier = Notifier()
     while True:
-        notifier.change_level(psutil.sensors_battery().percent)
-        notifier.change_state(psutil.sensors_battery().power_plugged)
+        notifier.change_level(sensors_battery().percent)
+        notifier.change_state(sensors_battery().power_plugged)
         if notifier.level < 15 and not notifier.state:
             notifier.notify('critical')
         elif notifier.level < 30 and not notifier.state:

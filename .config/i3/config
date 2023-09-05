@@ -1,3 +1,4 @@
+# i3menu - skip
 # 00 - Basic Configuration
 
 # Modifiers
@@ -24,7 +25,7 @@ workspace $ws3 output HDMI-0 eDP-1-1
 workspace $ws4 output HDMI-0 eDP-1-1 
 workspace $ws5 output eDP-1-1 
 workspace $ws6 output eDP-1-1 
-
+# i3menu - skip
 # 01 - Look - Colors and Fonts
 
 # - Main Font - Main Size -
@@ -59,7 +60,7 @@ client.focused          $urgent     $urgent     $text_dark  $indicator $urgent
 client.unfocused        $base_light $base_light $text_dim   $indicator             
 client.focused_inactive $base_light $base_light $text_dim   $indicator             
 client.urgent           $urgent     $urgent     $text_light $indicator             
-
+# i3menu - skip
 # 02 - Window Configuration
 
 # - Window to Workspace Assigment -
@@ -79,7 +80,8 @@ for_window [title="Zoom - (Licensed|Free) Account"] floating disable
 for_window [class="^Cssh$"]                         floating enable
 for_window [title="(CSSH|CLUSTERSSH): "]            floating enable
 for_window [class="Org.gnome.Nautilus"]             floating enable
-
+for_window [class="I3menu"]                         floating enable
+# i3menu - skip
 # 03 - Status Bars
 
 # Create Status bars on both monitors if possible
@@ -99,16 +101,25 @@ bar {
   status_command i3status --config /home/dhoessl/.config/i3/i3status_small.conf
   tray_output eDP-1-1
 }
-
+# i3menu - create
 # 04 - Mode Configuration
 
 # - Resizing -
 mode "resize" {
-  # Pressing left will shrink the window’s width.
-  # Pressing right will grow the window’s width.
-  # Pressing up will shrink the window’s height.
-  # Pressing down will grow the window’s height.
-
+  # i3menu - usage - Resize
+  # Open Mode:    $mod+r
+  # Close Mode:   $mod+r, Return, Escape
+  #
+  # Bindings:
+  #
+  # left          Shrink window width
+  # right         Grow window width
+  # up            Shrink window height
+  # down          Grow window height
+    #
+  # Notes:
+  # Vim Bindings disabled
+  
     # Vim shortcuts disabled for resizing
   
   # Arrow key resizing
@@ -129,6 +140,20 @@ bindsym $mod+r mode "resize"
 set $mode_display Config monitor resolution - Laptop (l) - Desktop (d) - Mixed (m)
 
 mode "$mode_display" {
+  # i3menu - usage - Display Manager
+  # Open Mode:    $mod+x
+  # Close Mode:   $mod+x, Return, Escape
+  #
+  # Bindings:
+  # 
+  # l             Output Device: Laptop
+  # d             Output Device: Desktop
+  # m             Output Device: Laptop + Desktop (mixed)
+  # 
+  # Note:
+  # If fail happens $mod+Shift+x is set to reset to Laptop Device
+  # Can be used outside of this mode
+
   bindsym l exec --no-startup-id python3 /home/dhoessl/.config/i3/scripts/display_switch.py -l,  mode "default"
   bindsym d exec --no-startup-id python3 /home/dhoessl/.config/i3/scripts/display_switch.py -d,  mode "default"
   bindsym m exec --no-startup-id python3 /home/dhoessl/.config/i3/scripts/display_switch.py -m,  mode "default"
@@ -142,15 +167,24 @@ bindsym $mod+x mode "$mode_display"
 # - Display Manager - Reset -
 bindsym $mod+Shift+x exec --no-startup-id python3 /home/dhoessl/.config/i3/scripts/display_switch.py -r
 
-# - Program Selector - Easy Access to Programs
-# Removed since `rofi` is doing a good job
-
 # - Session Manager -
 # -- Lockscreen --
 set $i3lockwall /home/dhoessl/.config/i3/scripts/lock.py
 set $mode_system System - lock (l) - logout (e) - suspend (s) - hibernate (h) - reboot (r) - shutdown (Ctrl+s)
 
 mode "$mode_system" {
+  # i3menu - usage - Sessionmanager
+  # Open Mode:    $mod+Backspace
+  # Close Mode:   $mod+Backspace, Return, Escape
+  #
+  # Bindings:
+  # l             Lock Screen
+  # e             Exit
+  # s             Suspend
+  # h             Hibernate
+  # r             Reboot
+  # Ctrl+s        Shutdown
+
   bindsym l       exec --no-startup-id $i3lockwall,                         mode "default"
   bindsym e       exec --no-startup-id i3-msg exit,                         mode "default"
   bindsym s       exec --no-startup-id $i3lockwall && systemctl suspend,    mode "default"
@@ -165,6 +199,57 @@ mode "$mode_system" {
 
 bindsym $mod+BackSpace mode "$mode_system"
 
+# - Audio Manager -
+# -- Tune/Player Control --
+
+set $mode_player Player - play/pause (h) - stop (j) - previous (k) - next (l)
+mode "$mode_player" {
+  # i3menu - usage - Audioplayer
+  # Open Mode:    $mod+F9
+  # Close Mode:   $mod+F9, Return, Escape
+  #
+  # Bindings:
+  # h             Pause
+  # j             Stop
+  # k             Previous
+  # l             Next
+
+  bindsym h       exec --no-startup-id playerctl play-pause && $refresh_i3status, mode "default"
+  bindsym j       exec --no-startup-id playerctl stop && $refresh_i3status,       mode "default"
+  bindsym k       exec --no-startup-id playerctl previous && $refresh_i3status,   mode "default"
+  bindsym l       exec --no-startup-id playerctl next && $refresh_i3status,       mode "default"
+
+  bindsym Return                                                                  mode "default"
+  bindsym Escape                                                                  mode "default"
+  bindsym $mod+F9                                                                 mode "default"
+}
+bindsym $mod+F9 mode "$mode_player"
+
+# -- Volume Control --
+
+set $mode_volume Volume - increase (h) - reduce (j) - (un)mute (k) - Mic (un)mute (l)
+mode "$mode_volume" {
+  # i3menu - usage - Sound
+  # Open Mode:    $mod+F10
+  # Close Mode:   $mod+F10, Return, Escape
+  #
+  # Bindings:
+  # h             Increase Volume by 10%
+  # j             Decrease Volume by 10%
+  # k             Output Mute (Toggle)
+  # l             Mic Mute (Toggle)
+
+  bindsym h       exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +10% && $refresh_i3status
+  bindsym j       exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -10% && $refresh_i3status
+  bindsym k       exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle && $refresh_i3status
+  bindsym l       exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
+
+  bindsym Return                                                                  mode "default"
+  bindsym Escape                                                                  mode "default"
+  bindsym $mod+F10                                                                mode "default"
+}
+bindsym $mod+F10 mode "$mode_volume"
+# i3menu - skip
 # 05 - Autostarts - Programs and Tools to start on startup
 
 # - dex Autostart i3 -
@@ -190,62 +275,77 @@ exec --no-startup-id nm-applet
 # - Programs -
 exec --no-startup-id firefox-esr
 exec --no-startup-id tilix
-exec --no-startup-id ferdi
 exec --no-startup-id thunderbird
 exec --no-startup-id flameshot
 exec --no-startup-id autokey-gtk
+exec --no-startup-id telegram-desktop
+exec --no-startup-id rocketchat-desktop
 
+# i3menu - create
 # 06 - i3 related keys
 
-# - Config File -
+# i3menu - selfbuild - Start
+# Config
 # reload
 bindsym $mod+Shift+c          reload
+
 # restart
 bindsym $mod+Shift+r          restart
+# i3menu - selfbuild - End
 
-# - Change Focus - Vim Bindings -
+# i3menu - selfbuild - Start
+# Change Focus
+# Vim Bindings
 # -! disabled !-
 
-# - Change Focus - Cursor Keys -
+# Cursor Keys
 bindsym $mod+Left             focus left
 bindsym $mod+Down             focus down
 bindsym $mod+Up               focus up
 bindsym $mod+Right            focus right
+# i3menu - selfbuild - End
 
-# - Move focused window - Vim Bindings -
+# i3menu - selfbuild - Start
+# Move focused window
+# Vim Bindings
 # -! disabled !-
 
-# - Move focused window - Cursor Keys -
+# Cursor Keys
 bindsym $mod+Shift+Left       move left
 bindsym $mod+Shift+Down       move down
 bindsym $mod+Shift+Up         move up
 bindsym $mod+Shift+Right      move right
+# i3menu - selfbuild - End
 
-# - Split Display - Horizontal Axis -
+# i3menu - selfbuild - Start
+# Split Display
+# Horizontal Axis
 bindsym $mod+v                split h
-# - Split Display - Vertical Axis -
-bindsym $mod+h                split v
 
-# - Fullscreen toggle -
+# Vertical Axis
+bindsym $mod+h                split v
+# i3menu - selfbuild - End
+
+# i3menu - selfbuild - Start
+# Container
+# Fullscreen toggle
 bindsym $mod+f                fullscreen toggle
 
-# - Container Floating toggle -
+# Floating toggle
 bindsym $mod+Shift+space      floating toggle
 
-# - Change focus - tiling / floating -
+# Change focus - tiling / floating
 bindsym $mod+space            focus mode_toggle
 
-# - Container Layout -
+# Container Layout
 bindsym $mod+s                layout stacking
 bindsym $mod+w                layout tabbed
 bindsym $mod+e                layout toggle split
+# i3menu - selfbuild - End
 
-# - Change Focus - Parent Container -
-# bindsym $mod+a            focus parent
-# - Change Focus - Child Container -
-# bindsym $mod+d            focus child
-
-# - Switch to - Workspace
+# i3menu - selfbuild - Start
+# Workspaces
+# Switch to
 bindsym $mod+1 workspace number $ws1
 bindsym $mod+2 workspace number $ws2
 bindsym $mod+3 workspace number $ws3
@@ -253,27 +353,35 @@ bindsym $mod+4 workspace number $ws4
 bindsym $mod+5 workspace number $ws5
 bindsym $mod+6 workspace number $ws6
 
-# - Move Window to - Workspace
+# Move Window to
 bindsym $mod+Shift+1 move container to workspace number $ws1
 bindsym $mod+Shift+2 move container to workspace number $ws2
 bindsym $mod+Shift+3 move container to workspace number $ws3
 bindsym $mod+Shift+4 move container to workspace number $ws4
 bindsym $mod+Shift+5 move container to workspace number $ws5
 bindsym $mod+Shift+6 move container to workspace number $ws6
-
+# i3menu - selfbuild - End
+# i3menu - create
 # 07 - other App related Keys
 
-# - Programselector -
-# -- dmenu disabled --
-# -- rofi --
+# i3menu - selfbuild - Start
+# Programselector
+# dmenu
+# -! disabled !-
+
+# rofi
 bindsym $mod+d exec "rofi -modi drun,window,run -show drun"
+# i3menu - selfbuild - End
 
-# - Lockscreen -
+# i3menu - selfbuild - Start
+# Lockscreen
+# Lockscreen
 set $i3lockwall /home/dhoessl/.config/i3/scripts/lock.py
-
 bindsym $mod+Shift+l exec --no-startup-id $i3lockwall
+# i3menu - selfbuild - End
 
-# - Audio -
+# i3menu - selfbuild - Start
+# Audio
 set $refresh_i3status killall -SIGUSR1 i3status
 bindsym XF86AudioRaiseVolume  exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +10% && $refresh_i3status
 bindsym XF86AudioLowerVolume  exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -10% && $refresh_i3status
@@ -283,19 +391,26 @@ bindsym XF86AudioPlay         exec --no-startup-id playerctl play-pause && $refr
 bindsym XF86AudioPrev         exec --no-startup-id playerctl previous && $refresh_i3status
 bindsym XF86AudioNext         exec --no-startup-id playerctl next && $refresh_i3status
 bindsym XF86AudioStop         exec --no-startup-id playerctl stop && $refresh_i3status
-bindsym $mod+F9               exec --no-startup-id playerctl play-pause && $refresh_i3status
-bindsym $mod+F10              exec --no-startup-id playerctl previous && $refresh_i3status
-bindsym $mod+F11              exec --no-startup-id playerctl next && $refresh_i3status
-bindsym $mod+F12              exec --no-startup-id playerctl stop && $refresh_i3status
+# i3menu - selfbuild - End
 
-# - Terminal -
-bindsym $mod+Return exec tilix
+# i3menu - selfbuild - Start
+# Misc
+# Terminal
+bindsym $mod+Return           exec tilix
 
-# - Kill Focus Window -
-bindsym $mod+Shift+q kill
+# Kill Focus Window
+bindsym $mod+Shift+q          kill
 
-# - rebuild i3 config -
+# rebuild i3 config
 bindsym $mod+Ctrl+c           exec --no-startup-id /home/dhoessl/.config/i3/scripts/merge_config.py
 
-# - Screenshot -
+# Screenshot
 bindsym Print                 exec --no-startup-id flameshot gui
+
+# set neolight as keyboard layout
+bindsym $mod+F8               exec --no-startup-id setxkbmap -layout neolight -variant de
+
+# Print Help Page
+bindsym $mod+F1               exec --no-startup-id /home/dhoessl/.config/i3/scripts/help.py
+
+# i3menu - selfbuild - End

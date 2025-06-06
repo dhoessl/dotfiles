@@ -10,11 +10,18 @@ from os import path, remove
 
 class Overlay:
     def __init__(self, joke, width, height):
+        self.width = width
         self.image = Image.new('RGB', (width, height), color=(69, 39, 44))
-        font = ImageFont.truetype('/usr/share/fonts/MesloLGS/MesloLGS NF Regular.ttf', 24)
+        font = ImageFont.truetype(
+            '/usr/share/fonts/MesloLGS/MesloLGS NF Regular.ttf',
+            24
+        )
         drawed = ImageDraw.Draw(self.image)
         drawed.text(
-            (((width - len(joke['punch']) * 10) / 2), height / 2),
+            (
+                200,
+                height / 2 + 100
+            ),
             joke['title'] + '\n' + joke['punch'],
             font=font,
             fill=(248, 228, 215)
@@ -40,11 +47,17 @@ class Joke:
         request_header = {
             'User-agent': 'dergnomi-dadjoke-bot'
         }
-        jsondata = rget('https://www.reddit.com/r/ProgrammerDadJokes.json', headers=request_header).json()
+        jsondata = rget(
+            'https://www.reddit.com/r/ProgrammerDadJokes.json',
+            headers=request_header
+        ).json()
 
         jokes = []
         for joke_object in jsondata['data']['children']:
-            jokes.append({'title': joke_object['data']['title'], 'punch': joke_object['data']['selftext']})
+            jokes.append({
+                'title': joke_object['data']['title'],
+                'punch': joke_object['data']['selftext']
+            })
 
         with open(self.saved_jokes, 'w') as fp:
             fp.write(dumps(jokes))
@@ -67,7 +80,8 @@ class Screenshot:
         # Open Image and get width and height
         image = Image.open(self.path)
         width, height = image.size
-        # create pixelart by scale it down to 10% and back to previous resolution
+        # create pixelart by scale it down to 10%
+        # and back to previous resolution
         convert = Popen([
             'convert',
             self.path,

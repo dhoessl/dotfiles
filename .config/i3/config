@@ -20,9 +20,9 @@ set $ws6 "6: Work (Share)"
 
 # WORKSPACE output
 workspace $ws1 output eDP-1-1 
-workspace $ws2 output HDMI-0 eDP-1-1 
-workspace $ws3 output HDMI-0 eDP-1-1 
-workspace $ws4 output HDMI-0 eDP-1-1 
+workspace $ws2 output DVI-I-3-2 eDP-1-1 
+workspace $ws3 output DVI-I-3-2 eDP-1-1 
+workspace $ws4 output DVI-3-2 eDP-1-1 
 workspace $ws5 output eDP-1-1 
 workspace $ws6 output eDP-1-1 
 # i3menu - skip
@@ -72,15 +72,17 @@ assign [class="zoom"]         $ws1
 
 
 # - Floating Config -
-for_window [window_role="pop-up"]                   floating enable
-for_window [window_role="task_dialog"]              floating enable
-for_window [class="Pavucontrol"]                    floating enable
-for_window [class="zoom"]                           floating enable
-for_window [title="Zoom - (Licensed|Free) Account"] floating disable
-for_window [class="^Cssh$"]                         floating enable
-for_window [title="(CSSH|CLUSTERSSH): "]            floating enable
-for_window [class="Org.gnome.Nautilus"]             floating enable
-for_window [class="I3menu"]                         floating enable
+for_window [window_role="pop-up"]        floating enable
+for_window [window_role="task_dialog"]   floating enable
+for_window [class="Pavucontrol"]         floating enable
+for_window [class="zoom"]                floating enable
+for_window [title=".*Zoom Workplace.*?"] floating disable
+for_window [class="^Cssh$"]              floating enable
+for_window [title="(CSSH|CLUSTERSSH): "] floating enable
+for_window [class="Org.gnome.Nautilus"]  floating enable
+for_window [class="I3menu"]              floating enable
+
+# - Window Control -
 # i3menu - skip
 # 03 - Status Bars
 
@@ -91,15 +93,18 @@ for_window [class="I3menu"]                         floating enable
 bar {
   font pango:MesloLGS NF Regular 14
   output HDMI-0
+  output DVI-I-3-2
+  output DVI-I-2-1
   status_command i3status --config /home/dhoessl/.config/i3/i3status.conf
-}
+  tray_output primary
+  }
 
 # - Main Laptop - small Screen -
 bar {
   font pango:MesloLGS NF Regular 12
   output eDP-1-1
   status_command i3status --config /home/dhoessl/.config/i3/i3status_small.conf
-  tray_output eDP-1-1
+  tray_output primary
 }
 # i3menu - create
 # 04 - Mode Configuration
@@ -169,7 +174,7 @@ bindsym $mod+Shift+x exec --no-startup-id python3 /home/dhoessl/.config/i3/scrip
 
 # - Session Manager -
 # -- Lockscreen --
-set $i3lockwall /home/dhoessl/.config/i3/scripts/lock.py
+set $i3lockwall betterlockscreen -l dimblur --span --show-layout
 set $mode_system System - lock (l) - logout (e) - suspend (s) - hibernate (h) - reboot (r) - shutdown (Ctrl+s)
 
 mode "$mode_system" {
@@ -256,15 +261,17 @@ bindsym $mod+F10 mode "$mode_volume"
 exec --no-startup-id dex --autostart --environment i3
 
 # - Lock Screen -
+# NOTE: This is done by using systemd Timer
 # exec --no-startup-id xss-lock --transfer-sleep-lock -- /home/dhoessl/.config/i3/scripts/lock.py
-exec --no-startup-id /home/dhoessl/.config/i3/scripts/check_idle.py --idle-time 900
+# exec --no-startup-id /home/dhoessl/.config/i3/scripts/check_idle.py --idle-time 900
 
 # - Power Manager - display Screen blank
 exec --no-startup-id xset -dpms
 exec --no-startup-id xset s off
 exec --no-startup-id /home/dhoessl/.config/i3/scripts/battery.py
 
-# TODO: maybe: - Display layout -
+# - Display layout -
+exec_always --no-startup-id /home/dhoessl/.screenlayout/default.sh
 
 # - Background -
 exec --no-startup-id /home/dhoessl/.config/i3/scripts/set_wallpaper.sh
@@ -279,7 +286,8 @@ exec --no-startup-id thunderbird
 exec --no-startup-id flameshot
 exec --no-startup-id autokey-gtk
 exec --no-startup-id telegram-desktop
-exec --no-startup-id rocketchat-desktop
+exec --no-startup-id nextcloud
+exec --no-startup-id /home/dhoessl/.config/i3/scripts/check_vpn.py
 
 # i3menu - create
 # 06 - i3 related keys
@@ -376,7 +384,7 @@ bindsym $mod+d exec "rofi -modi drun,window,run -show drun"
 # i3menu - selfbuild - Start
 # Lockscreen
 # Lockscreen
-set $i3lockwall /home/dhoessl/.config/i3/scripts/lock.py
+# set $i3lockwall /home/dhoessl/.config/i3/scripts/lock.py
 bindsym $mod+Shift+l exec --no-startup-id $i3lockwall
 # i3menu - selfbuild - End
 
@@ -391,6 +399,14 @@ bindsym XF86AudioPlay         exec --no-startup-id playerctl play-pause && $refr
 bindsym XF86AudioPrev         exec --no-startup-id playerctl previous && $refresh_i3status
 bindsym XF86AudioNext         exec --no-startup-id playerctl next && $refresh_i3status
 bindsym XF86AudioStop         exec --no-startup-id playerctl stop && $refresh_i3status
+# i3menu - selfbuild - End
+
+# i3menu - selfbuild - Start
+# Video
+# Fix Video for zoom
+
+bindsym $mod+F11              exec --no-startup-id /home/dhoessl/.config/i3/scripts/fix_zoom_video.sh
+
 # i3menu - selfbuild - End
 
 # i3menu - selfbuild - Start

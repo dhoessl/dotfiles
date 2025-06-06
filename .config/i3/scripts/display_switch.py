@@ -71,7 +71,7 @@ def main(args):
             'xrandr',
             '--output', display_info['primary'], '--auto',
             '--output', display_info['secondary'], '--auto',
-            '--primary', '--right-of', display_info['primary']
+            '--primary', '--left-of', display_info['primary']
         ])
     else:
         args.reset = True

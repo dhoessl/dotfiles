@@ -1,2 +1,6 @@
 alias git='nocorrect git'
 alias pass='nocorrect pass'
+alias battery="cat /sys/class/power_supply/BAT0/uevent | grep 'CAPACITY=' | awk -F'=' '{ print $2 }'"
+alias twtags="/home/dhoessl/gitrepos/work/dhoessl-scripts/tw_display_tags.py"
+alias twaddtag="/home/dhoessl/gitrepos/work/dhoessl-scripts/tw_tag_desc.py"
+alias nnis="/home/dhoessl/venvs/nnis/bin/ipython"

@@ -87,6 +87,7 @@ plugins=(
   zsh-autosuggestions
   autojump
   zsh-syntax-highlighting
+  timewarrior
 )
 
 source $ZSH/oh-my-zsh.sh

@@ -1,30 +1,29 @@
 scriptencoding utf-8
-" vim: set fdm=marker foldlevel=0:
-"
+
 " Vim syntax file
+" Language:	Pandoc (superset of Markdown)
+" Maintainer:	Felipe Morales <hel.sheep@gmail.com>
+" Maintainer:	Caleb Maclennan <caleb@alerque.com>
 "
-" Language: Pandoc (superset of Markdown)
-" Maintainer: Felipe Morales <hel.sheep@gmail.com>
-" Maintainer: Caleb Maclennan <caleb@alerque.com>
-" Contributor: David Sanson <dsanson@gmail.com>
-" Contributor: Jorge Israel Peña <jorge.israel.p@gmail.com>
-" OriginalAuthor: Jeremy Schultz <taozhyn@gmail.com>
+" Contributor:	David Sanson <dsanson@gmail.com>
+"		        Jorge Israel Peña <jorge.israel.p@gmail.com>
+"               Christian Brabandt @chrisbra
+" Original Author:	Jeremy Schultz <taozhyn@gmail.com>
 " Version: 5.0
+" Last Change:	2024 Apr 08
+
+if exists('b:current_syntax')
+  finish
+endif
+
+let s:cpo_save = &cpoptions
+set cpoptions&vim
 
 " Configuration: {{{1
 "
 " use conceal? {{{2
 if !exists('g:pandoc#syntax#conceal#use')
-    if v:version < 703
-        let g:pandoc#syntax#conceal#use = 0
-    else
-        let g:pandoc#syntax#conceal#use = 1
-    endif
-else
-    " exists, but we cannot use it, disable anyway
-    if v:version < 703
-        let g:pandoc#syntax#conceal#use = 0
-    endif
+    let g:pandoc#syntax#conceal#use = 1
 endif
 "}}}2
 
@@ -161,10 +160,10 @@ endif
 " Functions: {{{1
 " EnableEmbedsforCodeblocksWithLang {{{2
 function! EnableEmbedsforCodeblocksWithLang(entry)
-    " prevent embedded language syntaxes from changing 'foldmethod' 
+    " prevent embedded language syntaxes from changing 'foldmethod'
     if has('folding')
         let s:foldmethod = &l:foldmethod
-        let s:foldtext = &l:foldtext     
+        let s:foldtext = &l:foldtext
     endif
 
     try
@@ -175,7 +174,7 @@ function! EnableEmbedsforCodeblocksWithLang(entry)
         " We might have just turned off spellchecking by including the file,
         " so we turn it back on here.
         exe 'syntax spell toplevel'
-        exe 'syn region pandocDelimitedCodeBlock_' . s:langname . ' start=/\(\_^\( \+\|\t\)\=\(`\{3,}`*\|\~\{3,}\~*\)\s*\%({[^.]*\.\)\=' . s:langname . '\>.*\n\)\@<=\_^/' .
+        exe 'syn region pandocDelimitedCodeBlock_' . s:langname . ' start=/\(\_^\( \+\|\t\)\=\(`\{3,}`*\|\~\{3,}\~*\)\s*\%({[^.]*[.=]\)\=' . s:langname . '\>.*\n\)\@<=\_^/' .
                     \' end=/\_$\n\(\( \+\|\t\)\=\(`\{3,}`*\|\~\{3,}\~*\)\_$\n\_$\)\@=/ contained containedin=pandocDelimitedCodeBlock' .
                     \' contains=@' . toupper(s:langname)
         exe 'syn region pandocDelimitedCodeBlockinBlockQuote_' . s:langname . ' start=/>\s\(`\{3,}`*\|\~\{3,}\~*\)\s*\%({[^.]*\.\)\=' . s:langname . '\>/' .
@@ -228,6 +227,7 @@ command! -buffer -nargs=1 -complete=syntax PandocUnhighlight call DisableEmbedsf
 " BASE:
 syntax clear
 syntax spell toplevel
+
 " apply extra settings: {{{1
 if g:pandoc#syntax#colorcolumn == 1
     exe 'setlocal colorcolumn='.string(&textwidth+5)
@@ -243,7 +243,7 @@ endif
 
 " Embeds: {{{2
 
-" prevent embedded language syntaxes from changing 'foldmethod' 
+" prevent embedded language syntaxes from changing 'foldmethod'
 if has('folding')
     let s:foldmethod = &l:foldmethod
 endif
@@ -263,8 +263,13 @@ call s:WithConceal('html_c_e', 'syn match pandocHTMLCommentEnd /-->/ contained',
 " Unset current_syntax so the 2nd include will work
 unlet b:current_syntax
 syn include @LATEX syntax/tex.vim
-syn region pandocLaTeXInlineMath start=/\v\\@<!\$\S@=/ end=/\v\\@<!\$\d@!/ keepend contains=@LATEX
-syn region pandocLaTeXInlineMath start=/\\\@<!\\(/ end=/\\\@<!\\)/ keepend contains=@LATEX
+if index(g:pandoc#syntax#conceal#blacklist, 'inlinemath') == -1
+    " Can't use WithConceal here because it will mess up all other conceals
+    " when dollar signs are used normally. It must be skipped entirely if
+    " inlinemath is blacklisted
+    syn region pandocLaTeXInlineMath start=/\v\\@<!\$\S@=/ end=/\v\\@<!\$\d@!/ keepend contains=@LATEX
+    syn region pandocLaTeXInlineMath start=/\\\@<!\\(/ end=/\\\@<!\\)/ keepend contains=@LATEX
+endif
 syn match pandocEscapedDollar /\\\$/ conceal cchar=$
 syn match pandocProtectedFromInlineLaTeX /\\\@<!\${.*}\(\(\s\|[[:punct:]]\)\([^$]*\|.*\(\\\$.*\)\{2}\)\n\n\|$\)\@=/ display
 " contains=@LATEX
@@ -305,7 +310,7 @@ syn region pandocCodeBlockInsideIndent   start=/\(\(\d\|\a\|*\).*\n\)\@<!\(^\(\s
 " Links: {{{2
 
 " Base: {{{3
-syn region pandocReferenceLabel matchgroup=pandocOperator start=/!\{,1}\\\@<!\^\@<!\[/ skip=/\(\\\@<!\]\]\@=\|`.*\\\@<!].*`\)/ end=/\\\@<!\]/ keepend display
+syn region pandocReferenceLabel matchgroup=pandocOperator start=/!\{,1}\\\@<!\^\@<!\[/ skip=/\(\\\@<!\]\]\@=\|`[^`]*`\)/ end=/\\\@<!\]/ keepend display
 if g:pandoc#syntax#conceal#urls == 1
     syn region pandocReferenceURL matchgroup=pandocOperator start=/\]\@1<=(/ end=/)/ keepend conceal
 else
@@ -344,8 +349,8 @@ syn match pandocCiteLocator /[\[\]]/ contained containedin=pandocPCite,pandocICi
 " Text Styles: {{{2
 
 " Emphasis: {{{3
-call s:WithConceal('block', 'syn region pandocEmphasis matchgroup=pandocOperator start=/\\\@1<!\(\_^\|\s\|[[:punct:]]\)\@<=\*\S\@=/ skip=/\(\*\*\|__\)/ end=/\*\([[:punct:]]\|\s\|\_$\)\@=/ contains=@Spell,pandocNoFormattedInEmphasis,pandocLatexInlineMath,pandocAmpersandEscape', 'concealends')
-call s:WithConceal('block', 'syn region pandocEmphasis matchgroup=pandocOperator start=/\\\@1<!\(\_^\|\s\|[[:punct:]]\)\@<=_\S\@=/ skip=/\(\*\*\|__\)/ end=/\S\@1<=_\([[:punct:]]\|\s\|\_$\)\@=/ contains=@Spell,pandocNoFormattedInEmphasis,pandocLatexInlineMath,pandocAmpersandEscape', 'concealends')
+call s:WithConceal('block', 'syn region pandocEmphasis matchgroup=pandocOperator start=/\\\@1<!\(\_^\|\s\|[[:punct:]]\)\@<=\*\S\@=/ skip=/\(\*\*\|__\)/ end=/\*\([[:punct:]]\|\a\|\s\|\_$\)\@=/ contains=@Spell,pandocNoFormattedInEmphasis,pandocLatexInlineMath,pandocAmpersandEscape', 'concealends')
+call s:WithConceal('block', 'syn region pandocEmphasis matchgroup=pandocOperator start=/\\\@1<!\(\_^\|\s\|[[:punct:]]\)\@<=_\S\@=/ skip=/\(\*\*\|__\)/ end=/\S\@1<=_\([[:punct:]]\|\a\|\s\|\_$\)\@=/ contains=@Spell,pandocNoFormattedInEmphasis,pandocLatexInlineMath,pandocAmpersandEscape', 'concealends')
 " }}}3
 
 " Strong: {{{3
@@ -497,7 +502,7 @@ syn match pandocUListItem /^>\=\s*[*+-]\s\+-\@!.*$/ nextgroup=pandocUListItem,pa
 call s:WithConceal('list', 'syn match pandocUListItemBullet /^>\=\s*\zs[*+-]/ contained containedin=pandocUListItem', 'conceal cchar='.s:cchars['li'])
 
 " Ordered lists
-syn match pandocListItem /^\s*(\?\(\d\+\|\l\|\#\|@\)[.)].*$/ nextgroup=pandocListItem,pandocLaTeXMathBlock,pandocLaTeXInlineMath,pandocEscapedDollar,pandocDelimitedCodeBlock,pandocListItemContinuation contains=@Spell,pandocEmphasis,pandocStrong,pandocNoFormatted,pandocStrikeout,pandocSubscript,pandocSuperscript,pandocStrongEmphasis,pandocStrongEmphasis,pandocPCite,pandocICite,pandocCiteKey,pandocReferenceLabel,pandocLaTeXCommand,pandocLaTeXMathBlock,pandocLaTeXInlineMath,pandocEscapedDollar,pandocAutomaticLink,pandocFootnoteDef,pandocFootnoteBlock,pandocFootnoteID,pandocAmpersandEscape skipempty display
+syn match pandocListItem /^\s*(\?\(\d\+\|\l\|\#\|@\)[.)].*$/ nextgroup=pandocListItem,pandocLaTeXMathBlock,pandocLaTeXInlineMath,pandocEscapedDollar,pandocDelimitedCodeBlock,pandocListItemContinuation contains=@Spell,pandocEmphasis,pandocStrong,pandocReferenceURL,pandocNoFormatted,pandocStrikeout,pandocSubscript,pandocSuperscript,pandocStrongEmphasis,pandocStrongEmphasis,pandocPCite,pandocICite,pandocCiteKey,pandocReferenceLabel,pandocLaTeXCommand,pandocLaTeXMathBlock,pandocLaTeXInlineMath,pandocEscapedDollar,pandocAutomaticLink,pandocFootnoteDef,pandocFootnoteBlock,pandocFootnoteID,pandocAmpersandEscape skipempty display
 
 " support for roman numerals up to 'c'
 if g:pandoc#syntax#roman_lists != 0
@@ -511,8 +516,8 @@ syn match pandocListItemContinuation /^\s\+\([-+*]\s\+\|(\?.\+[).]\)\@<!\([[:upp
 
 " Definitions: {{{2
 if g:pandoc#syntax#use_definition_lists == 1
-    syn region pandocDefinitionBlock start=/^\%(\_^\s*\([`~]\)\1\{2,}\)\@!.*\n\(^\s*\n\)\=\s\{0,2}\([:~]\)\(\3\{2,}\3*\)\@!/ skip=/\n\n\zs\s/ end=/\n\n/ contains=pandocDefinitionBlockMark,pandocDefinitionBlockTerm,pandocCodeBlockInsideIndent,pandocEmphasis,pandocStrong,pandocStrongEmphasis,pandocNoFormatted,pandocStrikeout,pandocSubscript,pandocSuperscript,pandocFootnoteID,pandocReferenceURL,pandocReferenceLabel,pandocLaTeXMathBlock,pandocLaTeXInlineMath,pandocEscapedDollar,pandocAutomaticLink,pandocEmDash,pandocEnDash,pandocFootnoteDef,pandocFootnoteBlock,pandocFootnoteID
-    syn match pandocDefinitionBlockTerm /^.*\n\(^\s*\n\)\=\(\s*[:~]\)\@=/ contained contains=pandocNoFormatted,pandocEmphasis,pandocStrong,pandocLaTeXInlineMath,pandocEscapedDollar,pandocFootnoteDef,pandocFootnoteBlock,pandocFootnoteID nextgroup=pandocDefinitionBlockMark
+    syn region pandocDefinitionBlock start=/^\%(\_^\s*\([`~]\)\1\{2,}\)\@!.*\n\(^\s*\n\)\=\s\{0,2}\([:~]\)\(\3\{2,}\3*\)\@!/ skip=/\n\n\zs\s/ end=/\n\n/ contains=@Spell,pandocDefinitionBlockMark,pandocDefinitionBlockTerm,pandocCodeBlockInsideIndent,pandocEmphasis,pandocStrong,pandocStrongEmphasis,pandocNoFormatted,pandocStrikeout,pandocSubscript,pandocSuperscript,pandocFootnoteID,pandocReferenceURL,pandocReferenceLabel,pandocLaTeXMathBlock,pandocLaTeXInlineMath,pandocEscapedDollar,pandocAutomaticLink,pandocEmDash,pandocEnDash,pandocFootnoteDef,pandocFootnoteBlock,pandocFootnoteID
+    syn match pandocDefinitionBlockTerm /^.*\n\(^\s*\n\)\=\(\s*[:~]\)\@=/ contained contains=@Spell,pandocNoFormatted,pandocEmphasis,pandocStrong,pandocLaTeXInlineMath,pandocEscapedDollar,pandocFootnoteDef,pandocFootnoteBlock,pandocFootnoteID nextgroup=pandocDefinitionBlockMark
     call s:WithConceal('definition', 'syn match pandocDefinitionBlockMark /^\s*[:~]/ contained', 'conceal cchar='.s:cchars['definition'])
 endif
 " }}}2
@@ -561,7 +566,7 @@ endif
 " }}}3
 
 " &-escaped Special Characters: {{{3
-syn match pandocAmpersandEscape /\v\&(#\d+|#x\x+|[[:alnum:]]+)\;/ contains=NoSpell
+syn match pandocAmpersandEscape /\v\&(#\d+|#x\x+|[[:alnum:]]+)\;/ contains=@NoSpell
 " }}}3
 
 " YAML: {{{2
@@ -576,130 +581,162 @@ syn region pandocYAMLHeader start=/\%(\%^\|\_^\s*\n\)\@<=\_^-\{3}\ze\n.\+/ end=/
 " }}}1
 
 " Styling: {{{1
-hi link pandocOperator Operator
+function! s:SetupPandocHighlights()
 
-" override this for consistency
-hi pandocTitleBlock term=italic gui=italic
-hi link pandocTitleBlockTitle Directory
-hi link pandocAtxHeader Title
-hi link pandocAtxStart Operator
-hi link pandocSetexHeader Title
-hi link pandocHeaderAttr Comment
-hi link pandocHeaderID Identifier
+  hi def link pandocOperator Operator
 
-hi link pandocLaTexSectionCmd texSection
-hi link pandocLaTeXDelimiter texDelimiter
+  " override this for consistency
+  hi pandocTitleBlock term=italic gui=italic
+  hi def link pandocTitleBlockTitle Directory
+  hi def link pandocAtxHeader Title
+  hi def link pandocAtxStart Operator
+  hi def link pandocSetexHeader Title
+  hi def link pandocHeaderAttr Comment
+  hi def link pandocHeaderID Identifier
 
-hi link pandocHTMLComment Comment
-hi link pandocHTMLCommentStart Delimiter
-hi link pandocHTMLCommentEnd Delimiter
-hi link pandocBlockQuote Comment
-hi link pandocBlockQuoteMark Comment
-hi link pandocAmpersandEscape Special
+  hi def link pandocLaTexSectionCmd texSection
+  hi def link pandocLaTeXDelimiter texDelimiter
 
-" if the user sets g:pandoc#syntax#codeblocks#ignore to contain
-" a codeblock type, don't highlight it so that it remains Normal
-if index(g:pandoc#syntax#codeblocks#ignore, 'definition') == -1
-  hi link pandocCodeBlockInsideIndent String
-endif
+  hi def link pandocHTMLComment Comment
+  hi def link pandocHTMLCommentStart Delimiter
+  hi def link pandocHTMLCommentEnd Delimiter
+  hi def link pandocBlockQuote Comment
+  hi def link pandocBlockQuoteMark Comment
+  hi def link pandocAmpersandEscape Special
 
-if index(g:pandoc#syntax#codeblocks#ignore, 'delimited') == -1
-  hi link pandocDelimitedCodeBlock Special
-endif
+  " if the user sets g:pandoc#syntax#codeblocks#ignore to contain
+  " a codeblock type, don't highlight it so that it remains Normal
+  if index(g:pandoc#syntax#codeblocks#ignore, 'definition') == -1
+    hi def link pandocCodeBlockInsideIndent String
+  endif
 
-hi link pandocDelimitedCodeBlockStart Delimiter
-hi link pandocDelimitedCodeBlockEnd Delimiter
-hi link pandocDelimitedCodeBlockLanguage Comment
-hi link pandocBlockQuoteinDelimitedCodeBlock pandocBlockQuote
-hi link pandocCodePre String
+  if index(g:pandoc#syntax#codeblocks#ignore, 'delimited') == -1
+    hi def link pandocDelimitedCodeBlock Special
+  endif
 
-hi link pandocLineBlockDelimiter Delimiter
+  hi def link pandocDelimitedCodeBlockStart Delimiter
+  hi def link pandocDelimitedCodeBlockEnd Delimiter
+  hi def link pandocDelimitedCodeBlockLanguage Comment
+  hi def link pandocBlockQuoteinDelimitedCodeBlock pandocBlockQuote
+  hi def link pandocCodePre String
 
-hi link pandocListItemBullet Operator
-hi link pandocUListItemBullet Operator
-hi link pandocListItemBulletId Identifier
+  hi def link pandocLineBlockDelimiter Delimiter
 
-hi link pandocReferenceLabel Label
-hi link pandocReferenceURL Underlined
-hi link pandocLinkTip Identifier
-hi link pandocImageIcon Operator
+  hi def link pandocListItemBullet Operator
+  hi def link pandocUListItemBullet Operator
+  hi def link pandocListItemBulletId Identifier
 
-hi link pandocReferenceDefinition Operator
-hi link pandocReferenceDefinitionLabel Label
-hi link pandocReferenceDefinitionAddress Underlined
-hi link pandocReferenceDefinitionTip Identifier
+  hi def link pandocReferenceLabel Label
+  hi def link pandocReferenceURL Underlined
+  hi def link pandocLinkTip Identifier
+  hi def link pandocImageIcon Operator
 
-hi link pandocAutomaticLink Underlined
+  hi def link pandocReferenceDefinition Operator
+  hi def link pandocReferenceDefinitionLabel Label
+  hi def link pandocReferenceDefinitionAddress Underlined
+  hi def link pandocReferenceDefinitionTip Identifier
 
-hi link pandocDefinitionBlockTerm Identifier
-hi link pandocDefinitionBlockMark Operator
+  hi def link pandocAutomaticLink Underlined
 
-hi link pandocSimpleTableDelims Delimiter
-hi link pandocSimpleTableHeader pandocStrong
-hi link pandocTableMultilineHeader pandocStrong
-hi link pandocTableDelims Delimiter
-hi link pandocGridTableDelims Delimiter
-hi link pandocGridTableHeader Delimiter
-hi link pandocPipeTableDelims Delimiter
-hi link pandocPipeTableHeader Delimiter
-hi link pandocTableHeaderWord pandocStrong
+  hi def link pandocDefinitionBlockTerm Identifier
+  hi def link pandocDefinitionBlockMark Operator
 
-hi link pandocAbbreviationHead Type
-hi link pandocAbbreviation Label
-hi link pandocAbbreviationTail Type
-hi link pandocAbbreviationSeparator Identifier
-hi link pandocAbbreviationDefinition Comment
+  hi def link pandocSimpleTableDelims Delimiter
+  hi def link pandocSimpleTableHeader pandocStrong
+  hi def link pandocTableMultilineHeader pandocStrong
+  hi def link pandocTableDelims Delimiter
+  hi def link pandocGridTableDelims Delimiter
+  hi def link pandocGridTableHeader Delimiter
+  hi def link pandocPipeTableDelims Delimiter
+  hi def link pandocPipeTableHeader Delimiter
+  hi def link pandocTableHeaderWord pandocStrong
 
-hi link pandocFootnoteID Label
-hi link pandocFootnoteIDHead Type
-hi link pandocFootnoteIDTail Type
-hi link pandocFootnoteDef Comment
-hi link pandocFootnoteDefHead Type
-hi link pandocFootnoteDefTail Type
-hi link pandocFootnoteBlock Comment
-hi link pandocFootnoteBlockSeparator Operator
+  hi def link pandocAbbreviationHead Type
+  hi def link pandocAbbreviation Label
+  hi def link pandocAbbreviationTail Type
+  hi def link pandocAbbreviationSeparator Identifier
+  hi def link pandocAbbreviationDefinition Comment
 
-hi link pandocPCite Operator
-hi link pandocICite Operator
-hi link pandocCiteKey Label
-hi link pandocCiteAnchor Operator
-hi link pandocCiteLocator Operator
+  hi def link pandocFootnoteID Label
+  hi def link pandocFootnoteIDHead Type
+  hi def link pandocFootnoteIDTail Type
+  hi def link pandocFootnoteDef Comment
+  hi def link pandocFootnoteDefHead Type
+  hi def link pandocFootnoteDefTail Type
+  hi def link pandocFootnoteBlock Comment
+  hi def link pandocFootnoteBlockSeparator Operator
 
-if g:pandoc#syntax#style#emphases == 1
-    hi pandocEmphasis gui=italic cterm=italic
-    hi pandocStrong gui=bold cterm=bold
-    hi pandocStrongEmphasis gui=bold,italic cterm=bold,italic
-    hi pandocStrongInEmphasis gui=bold,italic cterm=bold,italic
-    hi pandocEmphasisInStrong gui=bold,italic cterm=bold,italic
-    if !exists('s:hi_tail')
-        let s:fg = '' " Vint can't figure ou these get set dynamically
-        let s:bg = '' " so initialize them manually first
-        for s:i in ['fg', 'bg']
-            let s:tmp_val = synIDattr(synIDtrans(hlID('String')), s:i)
-            let s:tmp_ui =  has('gui_running') || (has('termguicolors') && &termguicolors) ? 'gui' : 'cterm'
-            if !empty(s:tmp_val) && s:tmp_val != -1
-                exe 'let s:'.s:i . ' = "'.s:tmp_ui.s:i.'='.s:tmp_val.'"'
-            else
-                exe 'let s:'.s:i . ' = ""'
-            endif
-        endfor
-        let s:hi_tail = ' '.s:fg.' '.s:bg
-    endif
-    exe 'hi pandocNoFormattedInEmphasis gui=italic cterm=italic'.s:hi_tail
-    exe 'hi pandocNoFormattedInStrong gui=bold cterm=bold'.s:hi_tail
-endif
-hi link pandocNoFormatted String
-hi link pandocNoFormattedAttrs Comment
-hi link pandocSubscriptMark Operator
-hi link pandocSuperscriptMark Operator
-hi link pandocStrikeoutMark Operator
-if g:pandoc#syntax#style#underline_special == 1
-    hi pandocSubscript gui=underline cterm=underline
-    hi pandocSuperscript gui=underline cterm=underline
-    hi pandocStrikeout gui=underline cterm=underline
-endif
-hi link pandocNewLine Error
-hi link pandocHRule Delimiter
+  hi def link pandocPCite Operator
+  hi def link pandocICite Operator
+  hi def link pandocCiteKey Label
+  hi def link pandocCiteAnchor Operator
+  hi def link pandocCiteLocator Operator
+
+  if g:pandoc#syntax#style#emphases == 1
+      hi pandocEmphasis gui=italic cterm=italic
+      hi pandocStrong gui=bold cterm=bold
+      hi pandocStrongEmphasis gui=bold,italic cterm=bold,italic
+      hi pandocStrongInEmphasis gui=bold,italic cterm=bold,italic
+      hi pandocEmphasisInStrong gui=bold,italic cterm=bold,italic
+      if !exists('s:hi_tail')
+          let s:fg = '' " Vint can't figure ou these get set dynamically
+          let s:bg = '' " so initialize them manually first
+          for s:i in ['fg', 'bg']
+              let s:tmp_val = synIDattr(synIDtrans(hlID('String')), s:i)
+              let s:tmp_ui =  has('gui_running') || (has('termguicolors') && &termguicolors) ? 'gui' : 'cterm'
+              if !empty(s:tmp_val) && s:tmp_val != -1
+                  exe 'let s:'.s:i . ' = "'.s:tmp_ui.s:i.'='.s:tmp_val.'"'
+              else
+                  exe 'let s:'.s:i . ' = ""'
+              endif
+          endfor
+          let s:hi_tail = ' '.s:fg.' '.s:bg
+      endif
+      exe 'hi pandocNoFormattedInEmphasis gui=italic cterm=italic'.s:hi_tail
+      exe 'hi pandocNoFormattedInStrong gui=bold cterm=bold'.s:hi_tail
+  endif
+  hi def link pandocNoFormatted String
+  hi def link pandocNoFormattedAttrs Comment
+  hi def link pandocSubscriptMark Operator
+  hi def link pandocSuperscriptMark Operator
+  hi def link pandocStrikeoutMark Operator
+  if g:pandoc#syntax#style#underline_special == 1
+      hi pandocSubscript gui=underline cterm=underline
+      hi pandocSuperscript gui=underline cterm=underline
+      hi pandocStrikeout gui=underline cterm=underline
+  endif
+  hi def link pandocNewLine Error
+  hi def link pandocHRule Delimiter
+endfunction
+
+" Whenever the colorscheme changes, all highlights are cleared.
+"
+" The most common circumstance is that the vimrc picks a colorscheme *at
+" startup*, then a file is opened and the syntax is set based on that file. So
+" the most common situation is that the colorscheme runs, then the syntax
+" runs, and that's that. So if the code for the syntax (e.g., this code here
+" in vim-pandoc-syntax) *adds* new highlighting groups that weren't defined in
+" the colorscheme, that's almost always fine because the colorscheme rarely
+" changes after startup.
+"
+" But the colorscheme *can* change after startup. This happens for example any
+" time the user toggles their background (:set bg=light or :set bg=dark), or
+" picks another colorscheme (:colorscheme something_else). In these cases, the
+" new colorscheme calls `:highlight clear`, clearing any custom pandoc
+" highlighting groups.
+"
+" The solution is to register an autocommand that runs whenever the
+" ColorScheme changes, so that we can re-register vim-pandoc-syntax's custom
+" highlighting groups, after the new colorscheme has cleared them.
+"
+" (This also affects popular plugins like goyo.vim, which call `:colorscheme`
+" with your chosen colorscheme to approximate undoing any custom highlighting
+" modifications that they've made.)
+augroup vim-pandoc-syntax
+  autocmd!
+  autocmd ColorScheme * call s:SetupPandocHighlights()
+augroup end
+call s:SetupPandocHighlights()
 
 " }}}1
 
@@ -707,3 +744,8 @@ let b:current_syntax = 'pandoc'
 
 syntax sync clear
 syntax sync minlines=1000
+
+let &cpoptions = s:cpo_save
+unlet s:cpo_save
+
+" vim: set fdm=marker foldlevel=0:
